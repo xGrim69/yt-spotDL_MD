@@ -2,8 +2,33 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, QLineEdit, QPushButton, QScrollArea
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFontMetrics
+from metadata_search import launch_metadata_search
+from music_search import launch_music_search
+from download_song import get_music
 
 app = QApplication([])
+
+music_search_bar = None
+metadata_search_bar = None
+
+def on_metadata_search_clicked(event):
+    def update_metadata_search_bar(track_link):
+        metadata_search_bar.setText(track_link)  # Set the text in the metadata search bar
+    launch_metadata_search(app, update_metadata_search_bar)
+    event.accept()
+
+def on_music_search_clicked(event):
+    def update_music_search_bar(track_link):
+        music_search_bar.setText(track_link)  # Set the text in the music search bar
+    launch_music_search(app, update_music_search_bar)
+    event.accept()
+
+def on_download_button_clicked():
+    flac_source_link = music_search_bar.text()  # Get the FLAC source link from the music search bar
+    metadata_source_link = metadata_search_bar.text()  # Get the metadata source link from the metadata search bar
+
+    # Call the get_music function with the links
+    get_music(flac_source_link, metadata_source_link)
 
 def create_main_screen():
     screen_geometry = app.primaryScreen().geometry()
@@ -27,19 +52,30 @@ def insert_input_section():
 
     music_search_label = QLabel("FLAC Source [YT Music]")
 
+    global music_search_bar
     music_search_bar = QLineEdit()
+    music_search_bar.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+    # Connect the click event of the music search bar to launch the music screen
+    music_search_bar.mousePressEvent = on_music_search_clicked
 
     metadata_search_layout = QHBoxLayout()
     metadata_search_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
     metadata_search_label = QLabel("Metadata Source [Spotify]")
 
+    global metadata_search_bar
     metadata_search_bar = QLineEdit()
+    metadata_search_bar.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+    # Connect the click event of the metadata search bar to launch the metadata screen
+    metadata_search_bar.mousePressEvent = on_metadata_search_clicked
 
     button_layout = QHBoxLayout()
     button_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
     download_button = QPushButton("Download")
+    download_button.clicked.connect(on_download_button_clicked)
     download_button.setFixedSize(100, 30)
     
     button_layout.addWidget(download_button)

@@ -3,3 +3,8 @@
 Music/
 venv/
 temp_resources/
+__pycache__/
+
+# Files to be ignored:
+
+.cache

@@ -123,11 +123,7 @@ def embed_tag(mp3_file, flac_file):
     except subprocess.CalledProcessError as e:
         print(f"{datetime.now().strftime("%H:%M:%S")}: An error occurred: {e}")
 
-if __name__ == "__main__":
-    # Get sources of the music and metadata
-    flac_source_link = input("FLAC source link [YOUTUBE]: ")
-    metadata_source_link = input("Metadata source link [SPOTIFY]: ")
-
+def get_music(flac_source_link, metadata_source_link):
     metadata_source = get_metadata_source(metadata_source_link) # Get the filename of the mp3 file
     artist, album, title = download_audio(flac_source_link, f'./temp_resources/{metadata_source}') # Get artist, album, and title value from the flac file
 
