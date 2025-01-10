@@ -6,20 +6,27 @@ from metadata_search import launch_metadata_search
 from music_search import launch_music_search
 from download_song import get_music
 
-app = QApplication([])
+app = QApplication([]) # Initializing the application
 
+# Initialization of global variables
 music_search_bar = None
 metadata_search_bar = None
 
 def on_metadata_search_clicked(event):
+    # Automatically inserts the link of the selected item in the metadata search scren
     def update_metadata_search_bar(track_link):
         metadata_search_bar.setText(track_link)  # Set the text in the metadata search bar
+    
+    # Calling the function itself
     launch_metadata_search(app, update_metadata_search_bar)
     event.accept()
 
 def on_music_search_clicked(event):
+    # Automatically inserts the link of the selected item in the metadata search scren
     def update_music_search_bar(track_link):
         music_search_bar.setText(track_link)  # Set the text in the music search bar
+    
+    # Calling the function itself
     launch_music_search(app, update_music_search_bar)
     event.accept()
 
@@ -45,14 +52,14 @@ def create_main_screen():
     return main_screen
 
 def insert_input_section():
-    input_group_box = QGroupBox("Input Section")
+    input_group_box = QGroupBox("Input Section") # Initializing the group box of input section
 
-    music_search_layout = QHBoxLayout()
+    music_search_layout = QHBoxLayout() # Container for inputs
     music_search_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
     music_search_label = QLabel("FLAC Source [YT Music]")
 
-    global music_search_bar
+    global music_search_bar # Making the music search bar global for content modifications
     music_search_bar = QLineEdit()
     music_search_bar.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
@@ -64,7 +71,7 @@ def insert_input_section():
 
     metadata_search_label = QLabel("Metadata Source [Spotify]")
 
-    global metadata_search_bar
+    global metadata_search_bar # Making the metadata search bar for content modifications
     metadata_search_bar = QLineEdit()
     metadata_search_bar.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
@@ -75,16 +82,16 @@ def insert_input_section():
     button_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
     download_button = QPushButton("Download")
-    download_button.clicked.connect(on_download_button_clicked)
+    download_button.clicked.connect(on_download_button_clicked) # Connecting the operation function to the download button
     download_button.setFixedSize(100, 30)
     
     button_layout.addWidget(download_button)
 
-    music_search_label_font_metrics = QFontMetrics(music_search_label.font())
-    music_search_label_width = music_search_label_font_metrics.horizontalAdvance(music_search_label.text())
+    music_search_label_font_metrics = QFontMetrics(music_search_label.font()) # Fetching the information about the music search label
+    music_search_label_width = music_search_label_font_metrics.horizontalAdvance(music_search_label.text()) # Extracting the width out of it
 
-    metadata_search_label_font_metrics = QFontMetrics(metadata_search_label.font())
-    metadata_search_label_width = metadata_search_label_font_metrics.horizontalAdvance(metadata_search_label.text())
+    metadata_search_label_font_metrics = QFontMetrics(metadata_search_label.font()) # Fetching the information about the metadata search label
+    metadata_search_label_width = metadata_search_label_font_metrics.horizontalAdvance(metadata_search_label.text()) # Extracting the width out of it
 
     music_search_layout.addWidget(music_search_label)
     music_search_layout.addSpacing((metadata_search_label_width - music_search_label_width) + 10)
@@ -112,17 +119,17 @@ def insert_input_section():
     final_input_section_layout.addSpacing(20)
     final_input_section_layout.addLayout(lower_input_section_layout)
 
-    input_group_box.setLayout(final_input_section_layout)
+    input_group_box.setLayout(final_input_section_layout) # Setting the final input section layout as the default layout for input group box
 
     final_layout = QVBoxLayout()
-    final_layout.addWidget(input_group_box)
+    final_layout.addWidget(input_group_box) # Inserting the final input section layout to the input group box
     
     return final_layout
 
 def insert_recent_downloads():
-    recents_group_box = QGroupBox("Recent Downloads")
+    recents_group_box = QGroupBox("Recent Downloads") # Initializing the group box for recent downloads
 
-    recent_downloads_area = QScrollArea()
+    recent_downloads_area = QScrollArea() # Initializing the container for recent downloads
     recent_downloads_area.setWidgetResizable(False)
 
     initialize_recents = QWidget()
@@ -131,7 +138,7 @@ def insert_recent_downloads():
     recent_downloads_layout = QVBoxLayout()
     recent_downloads_layout.addWidget(recent_downloads_area)
 
-    recents_group_box.setLayout(recent_downloads_layout)
+    recents_group_box.setLayout(recent_downloads_layout) # Setting the recent downloads layout as the default layout for recent downloads group box
 
     final_layout = QVBoxLayout()
     final_layout.addWidget(recents_group_box)
@@ -139,9 +146,9 @@ def insert_recent_downloads():
     return final_layout
 
 def insert_queue_section():
-    queue_group_box = QGroupBox("Queue Section")
+    queue_group_box = QGroupBox("Queue Section") # Initializing the group box for queue section
 
-    queue_section_area = QScrollArea()
+    queue_section_area = QScrollArea() # Initializing the container for queue section
     queue_section_area.setWidgetResizable(False)
 
     initialize_queue = QWidget()
@@ -150,7 +157,7 @@ def insert_queue_section():
     queue_section_layout = QVBoxLayout()
     queue_section_layout.addWidget(queue_section_area)
 
-    queue_group_box.setLayout(queue_section_layout)
+    queue_group_box.setLayout(queue_section_layout) # Setting the queue section layout as the default layout for queue group box
 
     final_layout = QVBoxLayout()
     final_layout.addWidget(queue_group_box)
@@ -161,7 +168,7 @@ if __name__ == "__main__":
     main_screen = create_main_screen()
 
     central_widget = QWidget()
-    main_screen.setCentralWidget(central_widget)
+    main_screen.setCentralWidget(central_widget) # Initializing the central widget of the main screen
 
     input_section = insert_input_section()
 
@@ -185,8 +192,8 @@ if __name__ == "__main__":
 
     parent_layout.setContentsMargins(30, 30, 30, 30)
 
-    central_widget.setLayout(parent_layout)
+    central_widget.setLayout(parent_layout) # Setting the parent layout as the layout of the central widget
 
-    main_screen.show()
+    main_screen.show() # Show the main screen
 
-    sys.exit(app.exec())
+    sys.exit(app.exec()) # Executes the application

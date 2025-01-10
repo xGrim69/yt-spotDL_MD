@@ -9,17 +9,18 @@ from PyQt6.QtGui import QImage, QPixmap, QIcon
 client_id = '3cba3e9f179a4dd699883e7ac2888d6d'
 client_secret = 'b6f564dffb6c4825b4b6fb128f966f2b'
 
+# Initializing the connection to spotify database
 auth_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
-# Global variable to persist the metadata window
+# Initialization of global variables
 metadata_screen = None
-
 metadata_search_bar = None
 metadata_results_list = None
 timer = QTimer()
 timer.setSingleShot(True)
 
+# Function to launch metadata search window
 def launch_metadata_search(qApplication, callback):
     global metadata_screen  # Persist the window instance
 
@@ -40,7 +41,7 @@ def launch_metadata_search(qApplication, callback):
 
         metadata_screen.setCentralWidget(central_widget)
 
-        global metadata_search_bar
+        global metadata_search_bar # Making the metadata search bar global for content modifications in the metadata results list
         metadata_search_bar = QLineEdit()
 
         timer.timeout.connect(fetch_results)
@@ -55,14 +56,14 @@ def launch_metadata_search(qApplication, callback):
         metadata_search_layout.addSpacing(10)
         metadata_search_layout.addWidget(metadata_search_bar)
 
-        global metadata_results_list
+        global metadata_results_list # Making the metadata results list global for accessing information to the metadata search bar
         metadata_results_list = QListWidget()
 
         # Connect the item click event to fetch the selected track link
         metadata_results_list.itemClicked.connect(lambda item: on_metadata_item_clicked(item, callback))
 
         metadata_results_list.setUniformItemSizes(True)
-        metadata_results_list.setIconSize(QSize(100, 100))
+        metadata_results_list.setIconSize(QSize(60, 60))
 
         metadata_screen_layout = QVBoxLayout()
         metadata_screen_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -81,13 +82,7 @@ def on_metadata_search_text_changed(event):
     timer.start(1500)
 
 def on_metadata_item_clicked(item, callback):
-    # Extract the song query (track name and artist)
-    selected_text = item.text()
-    
-    # Search for the selected track to get its link
-    query = selected_text.split(" - ")[0]  # Get the song title
-    results = sp.search(q=query, type='track', limit=1)
-    track_link = results['tracks']['items'][0]['external_urls']['spotify']  # Get Spotify link
+    track_link = item.data(Qt.ItemDataRole.UserRole) # Get Spotify link
     
     # Pass the track link back to the callback function in main_screen.py
     callback(track_link)
@@ -98,17 +93,20 @@ def on_metadata_item_clicked(item, callback):
 def fetch_results():
     song_query = metadata_search_bar.text()
 
+    # Clears the content of metadata results list
     if not song_query:
         metadata_results_list.clear()
         return
 
     results = sp.search(q=song_query, type='track', limit=10)  # Limit results to 10 tracks
-    tracks = results['tracks']['items']
+    tracks = results['tracks']['items'] # Fetching the results based on the song query
     metadata_results_list.clear()  # Clear previous results
 
+    # Adding the fetched items to the metadata results list
     for track in tracks:
         song_title = track['name']
         artist_name = ', '.join(artist['name'] for artist in track['artists'])
+        track_url = track['external_urls']['spotify']
         album_id = track['album']['id']  # Get the album ID
         
         # Fetch album details using the album ID
@@ -125,6 +123,7 @@ def fetch_results():
                 pixmap = QPixmap.fromImage(image)
                 item.setIcon(QIcon(pixmap))
         
+        item.setData(Qt.ItemDataRole.UserRole, track_url) # Store the url as additional data to the item for fast url retrieval
         item.setSizeHint(QSize(110, 110))  # Set a larger size hint for each item (width x height)
         metadata_results_list.addItem(item)
 

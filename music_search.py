@@ -7,7 +7,7 @@ from PyQt6.QtGui import QImage, QPixmap, QIcon
 # Initialize YTMusic API
 ytmusic = YTMusic()
 
-# Global variable to persist the music window
+# Initialization of global variables
 music_screen = None
 music_search_bar = None
 music_results_list = None
@@ -28,14 +28,14 @@ def launch_music_search(qApplication, callback):
 
         # Create and configure the music screen
         music_screen = QMainWindow()
-        music_screen.setWindowTitle("music Search")
+        music_screen.setWindowTitle("Music Search")
         music_screen.setGeometry(music_screen_x, music_screen_y, music_screen_width, music_screen_height)
 
         central_widget = QWidget()
 
         music_screen.setCentralWidget(central_widget)
 
-        global music_search_bar
+        global music_search_bar # Making the music search bar global for content modifications in the metadata results list
         music_search_bar = QLineEdit()
 
         timer.timeout.connect(fetch_results)
@@ -50,7 +50,7 @@ def launch_music_search(qApplication, callback):
         music_search_layout.addSpacing(10)
         music_search_layout.addWidget(music_search_bar)
 
-        global music_results_list
+        global music_results_list # Making the music results list global for accessing information to the metadata search bar
         music_results_list = QListWidget()
 
         # Connect the item click event to fetch the selected track link
@@ -76,20 +76,10 @@ def on_music_search_text_changed(event):
     timer.start(1500)
 
 def on_music_item_clicked(item, callback):
-    # Extract the song query (track name and artist)
-    selected_text = item.text()
-    
-    # Use ytmusicapi to search for the song
-    song_title = selected_text.split(" - ")[0]  # Get the song title
-    search_results = ytmusic.search(song_title, filter='songs')  # Removed max_results
-    
-    # Limit results to 1 (the first result)
-    if search_results:
-        track = search_results[0]  # Get the first result
-        video_url = f'https://music.youtube.com/watch?v={track["videoId"]}'  # Get the video URL
-        
-        # Pass the video URL back to the callback function
-        callback(video_url)
+    song_url = item.data(Qt.ItemDataRole.UserRole) # Get Youtube Music link
+
+    # Pass the track link back to the callback function in main_screen.py
+    callback(song_url)
     
     # Close the music screen
     music_screen.close()
@@ -102,11 +92,10 @@ def fetch_results():
         return
 
     # Search for songs on YouTube Music using YTMusic API
-    search_results = ytmusic.search(song_query, filter='songs')  # Removed max_results
-
+    search_results = ytmusic.search(song_query, filter='songs')
     music_results_list.clear()  # Clear previous results
 
-    # Limit results to 10
+    # Adding the fetched items to the music results list
     for track in search_results[:10]:  # Slice the first 10 results
         song_title = track['title']
         artist_name = track['artists'][0]['name'] if 'artists' in track else 'Unknown Artist'
@@ -126,7 +115,8 @@ def fetch_results():
             if not image.isNull():
                 pixmap = QPixmap.fromImage(image)
                 item.setIcon(QIcon(pixmap))
-
+        
+        item.setData(Qt.ItemDataRole.UserRole, track_link) # Store the url as additional data to the item for fast url retrieval
         item.setSizeHint(QSize(110, 110))  # Set a larger size for each item
         music_results_list.addItem(item)
 
