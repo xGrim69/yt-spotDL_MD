@@ -86,6 +86,10 @@ def on_metadata_item_clicked(item, callback):
     
     # Pass the track link back to the callback function in main_screen.py
     callback(track_link)
+
+    metadata_search_bar.clear()
+    metadata_search_bar.setFocus()
+    metadata_results_list.clear()
     
     # Close the metadata screen
     metadata_screen.close()
