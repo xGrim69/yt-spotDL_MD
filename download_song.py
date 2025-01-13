@@ -24,12 +24,15 @@ def download_audio(flac_source, metadata_source):
     # Extract directory names first
     artist, album_artist, album, title = get_directory_names(metadata_source)
 
+    os.rename(metadata_source, f'./temp_resources/{artist.replace('/', ', ')} - {title}.mp3') # Format metadata source file name to ensure the metadata path
+
     # Download the music in flac format
     command = [
         "yt-dlp",
         "-x",  # Extract audio
         "--audio-format", "flac",  # Specify audio format as FLAC
-        "-o", f"./Music/{album_artist.split('/')[0].strip()}/{album}/{title}.%(ext)s",  # Output template
+        # "-o", f"./Music/{album_artist.split('/')[0].strip()}/{album}/{title}.%(ext)s",  # Output template
+        "-o", f"./Music/{album_artist}/{album}/{title}.%(ext)s",  # Output template
         flac_source  # The URL to download from
     ]
 

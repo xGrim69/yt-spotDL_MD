@@ -80,6 +80,10 @@ def on_music_item_clicked(item, callback):
 
     # Pass the track link back to the callback function in main_screen.py
     callback(song_url)
+
+    music_search_bar.clear()
+    music_search_bar.setFocus()
+    music_results_list.clear()
     
     # Close the music screen
     music_screen.close()

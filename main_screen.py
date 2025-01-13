@@ -1,5 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, QLineEdit, QPushButton, QScrollArea
+import os
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, QLineEdit, QPushButton, QListWidget
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFontMetrics
 from metadata_search import launch_metadata_search
@@ -11,6 +12,7 @@ app = QApplication([]) # Initializing the application
 # Initialization of global variables
 music_search_bar = None
 metadata_search_bar = None
+song_queue = {}
 
 def on_metadata_search_clicked(event):
     # Automatically inserts the link of the selected item in the metadata search scren
@@ -34,8 +36,19 @@ def on_download_button_clicked():
     flac_source_link = music_search_bar.text()  # Get the FLAC source link from the music search bar
     metadata_source_link = metadata_search_bar.text()  # Get the metadata source link from the metadata search bar
 
-    # Call the get_music function with the links
-    get_music(flac_source_link, metadata_source_link)
+    for song in song_queue.keys():
+        # Call the get_music function with the links
+        get_music(song_queue[song]['music_source'], song_queue[song]['metadata_source'])
+    
+    song_queue.clear()
+
+def on_add_button_clicked():
+    if music_search_bar.text().strip() != "" and metadata_search_bar.text().strip() != "":
+        song_queue[len(song_queue) + 1] = {'music_source': music_search_bar.text(), 'metadata_source': metadata_search_bar.text()}
+        music_search_bar.clear()
+        metadata_search_bar.clear()
+        os.system('clear')
+        print(song_queue)
 
 def create_main_screen():
     screen_geometry = app.primaryScreen().geometry()
@@ -84,7 +97,13 @@ def insert_input_section():
     download_button = QPushButton("Download")
     download_button.clicked.connect(on_download_button_clicked) # Connecting the operation function to the download button
     download_button.setFixedSize(100, 30)
+
+    add_button = QPushButton("Add")
+    add_button.clicked.connect(on_add_button_clicked) # Connecting the operation function to the download button
+    add_button.setFixedSize(100, 30)
     
+    button_layout.addWidget(add_button)
+    button_layout.addSpacing(5)
     button_layout.addWidget(download_button)
 
     music_search_label_font_metrics = QFontMetrics(music_search_label.font()) # Fetching the information about the music search label
@@ -129,11 +148,11 @@ def insert_input_section():
 def insert_recent_downloads():
     recents_group_box = QGroupBox("Recent Downloads") # Initializing the group box for recent downloads
 
-    recent_downloads_area = QScrollArea() # Initializing the container for recent downloads
-    recent_downloads_area.setWidgetResizable(False)
+    recent_downloads_area = QListWidget() # Initializing the container for recent downloads
+    # recent_downloads_area.setWidgetResizable(False)
 
-    initialize_recents = QWidget()
-    recent_downloads_area.setWidget(initialize_recents)
+    # initialize_recents = QWidget()
+    # recent_downloads_area.setWidget(initialize_recents)
 
     recent_downloads_layout = QVBoxLayout()
     recent_downloads_layout.addWidget(recent_downloads_area)
@@ -148,11 +167,11 @@ def insert_recent_downloads():
 def insert_queue_section():
     queue_group_box = QGroupBox("Queue Section") # Initializing the group box for queue section
 
-    queue_section_area = QScrollArea() # Initializing the container for queue section
-    queue_section_area.setWidgetResizable(False)
+    queue_section_area = QListWidget() # Initializing the container for queue section
+    # queue_section_area.setWidgetResizable(False)
 
-    initialize_queue = QWidget()
-    queue_section_area.setWidget(initialize_queue)
+    # initialize_queue = QWidget()
+    # queue_section_area.setWidget(initialize_queue)
 
     queue_section_layout = QVBoxLayout()
     queue_section_layout.addWidget(queue_section_area)
