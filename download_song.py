@@ -24,6 +24,11 @@ def download_audio(flac_source, metadata_source):
     # Extract directory names first
     artist, album_artist, album, title = get_directory_names(metadata_source)
 
+    # Sanitize variables to avoid filesystem issues
+    sanitized_album_artist = album_artist.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
+    sanitized_album = album.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
+    sanitized_title = title.replace('/', '／')  # Safely handle '/' in title
+
     os.rename(metadata_source, f'./temp_resources/{artist.replace('/', ', ')} - {title}.mp3') # Format metadata source file name to ensure the metadata path
 
     # Download the music in flac format
@@ -31,8 +36,7 @@ def download_audio(flac_source, metadata_source):
         "yt-dlp",
         "-x",  # Extract audio
         "--audio-format", "flac",  # Specify audio format as FLAC
-        # "-o", f"./Music/{album_artist.split('/')[0].strip()}/{album}/{title}.%(ext)s",  # Output template
-        "-o", f"./Music/{album_artist}/{album}/{title}.%(ext)s",  # Output template
+        "-o", f"./Music/{sanitized_album_artist}/{sanitized_album}/{sanitized_title}.%(ext)s",  # Output template
         flac_source  # The URL to download from
     ]
 
@@ -41,7 +45,8 @@ def download_audio(flac_source, metadata_source):
         subprocess.run(command, check=True)
         
         # Return first artist, album, and title for directory naming
-        return artist, album_artist, album, title
+        # return artist, album_artist, album, title
+        return artist, sanitized_album_artist, sanitized_album, sanitized_title
     except subprocess.CalledProcessError as e:
         print(f"{datetime.now().strftime("%H:%M:%S")}: An error occurred: {e}")
 
@@ -129,7 +134,8 @@ def get_music(flac_source_link, metadata_source_link):
     artist, album_artist, album, title = download_audio(flac_source_link, f'./temp_resources/{metadata_source}') # Get artist, album, and title value from the flac file
 
     # Specify your FLAC file and JSON metadata file
-    flac_file = f'./Music/{album_artist.split('/')[0].strip()}/{album}/{title}.flac'  # Predefined location of the flac file
+    # flac_file = f'./Music/{album_artist.split('/')[0].strip()}/{album}/{title}.flac'  # Predefined location of the flac file
+    flac_file = f'./Music/{album_artist}/{album}/{title}.flac'  # Predefined location of the flac file
     mp3_file = f'./temp_resources/{artist.replace('/', ', ')} - {title}.mp3'    # Predefined location of the mp3 file
 
     embed_tag(mp3_file, flac_file) # Do the embedding process itself
