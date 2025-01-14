@@ -27,9 +27,9 @@ def download_audio(flac_source, metadata_source):
     # Sanitize variables to avoid filesystem issues
     sanitized_album_artist = album_artist.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
     sanitized_album = album.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
-    sanitized_title = title.replace('/', '／')  # Safely handle '/' in title
+    sanitized_title = title.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
 
-    os.rename(metadata_source, f'./temp_resources/{artist.replace('/', ', ')} - {title}.mp3') # Format metadata source file name to ensure the metadata path
+    os.rename(metadata_source, f'./temp_resources/{artist.replace('/', ', ')} - {sanitized_title}.mp3') # Format metadata source file name to ensure the metadata path
 
     # Download the music in flac format
     command = [
