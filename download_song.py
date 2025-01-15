@@ -32,7 +32,6 @@ def download_audio(flac_source):
     sanitized_album_artist = ", ".join(album_artist).replace('/', '／')  # Join list and replace '/'
     sanitized_album = album.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
     sanitized_title = title.replace('/', '／')  # Replace '/' with a full-width slash for the folder name
-    print(sanitized_title)
 
     # Download the music in flac format
     command = [
@@ -74,7 +73,8 @@ def extract_metadata(flac_source_link, metadata_source_link):
         item = metadata[0]
 
         # Capitalize genre inline: Split by spaces, slashes, and hyphens, then capitalize each part
-        genre = '-'.join([word.capitalize() for word in item.get("genres", [""])[0].split('-')])  # First genre or blank
+        # genre = '-'.join([word.capitalize() for word in item.get("genres", "")[0].split('-')])  # First genre or blank
+        genre = item.get("genres")[0] if item.get("genres") else "" # Get the first genre if genre list is not empty, else, blank
         
         # Split by spaces and slashes, and capitalize
         parts = re.split(r'([ /-])', genre)  # Split by space, slash, or hyphen but keep the delimiters

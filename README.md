@@ -8,6 +8,9 @@
 2. **ffmpeg package**  
    To install the ffmpeg package, run: `sudo apt install ffmpeg`
 
+3. **curl package**  
+   To install the ffmpeg package, run: `sudo apt install curl`
+
 ---
 
 ## Steps for development

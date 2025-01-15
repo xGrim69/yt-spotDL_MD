@@ -123,9 +123,9 @@ def insert_input_section():
     upper_input_section_layout = QVBoxLayout()
     upper_input_section_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
-    upper_input_section_layout.addLayout(music_search_layout)
-    upper_input_section_layout.addSpacing(30)
     upper_input_section_layout.addLayout(metadata_search_layout)
+    upper_input_section_layout.addSpacing(30)
+    upper_input_section_layout.addLayout(music_search_layout)
 
     lower_input_section_layout = QVBoxLayout()
     lower_input_section_layout.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignLeft)
