@@ -9,7 +9,7 @@
    To install the ffmpeg package, run: `sudo apt install ffmpeg`
 
 3. **curl package**  
-   To install the ffmpeg package, run: `sudo apt install curl`
+   To install the curl package, run: `sudo apt install curl`
 
 ---
 
