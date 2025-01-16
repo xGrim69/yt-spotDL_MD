@@ -83,7 +83,7 @@ def extract_metadata(flac_source_link, metadata_source_link):
         # Extract fields with defaults for optional ones (blank if not available)
         extracted_data = {
             "TITLE": item.get("name", ""),
-            "ARTIST": ", ".join(item.get("artists", [])),
+            "ARTIST": ", ".join(item.get("artists", "")),
             "ALBUM": item.get("album_name", ""),
             "ALBUMARTIST": item.get("album_artist", ""),
             "COMPOSER": item.get("composer", ""),  # Composer is optional
