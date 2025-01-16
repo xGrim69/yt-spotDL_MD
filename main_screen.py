@@ -33,9 +33,6 @@ def on_music_search_clicked(event):
     event.accept()
 
 def on_download_button_clicked():
-    flac_source_link = music_search_bar.text()  # Get the FLAC source link from the music search bar
-    metadata_source_link = metadata_search_bar.text()  # Get the metadata source link from the metadata search bar
-
     for song in song_queue.keys():
         # Call the get_music function with the links
         get_music(song_queue[song]['music_source'], song_queue[song]['metadata_source'])
