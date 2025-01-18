@@ -8,12 +8,58 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from datetime import datetime
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
+from worker import DownloadWorker
 
 client_id = '3cba3e9f179a4dd699883e7ac2888d6d'
 client_secret = 'b6f564dffb6c4825b4b6fb128f966f2b'
 
 credentials = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=credentials)
+
+song_queue = {}
+
+# # For debugging purposes
+# song_queue = {1: {'music_source': 'https://music.youtube.com/watch?v=DoPErQwgfg8', 'metadata_source': 'https://open.spotify.com/track/5zQUndaoBtXJ10SsApqtvw'}, 2: {'music_source': 'https://music.youtube.com/watch?v=mDQqhGH58P0', 'metadata_source': 'https://open.spotify.com/track/2f92hG26Af9enOtKh5dqnx'}, 3: {'music_source': 'https://music.youtube.com/watch?v=Z-hpRjpFmmU', 'metadata_source': 'https://open.spotify.com/track/59rbPbgauxNuF8JjQgCZDR'}, 4: {'music_source': 'https://music.youtube.com/watch?v=lcOz_NEUO0E', 'metadata_source': 'https://open.spotify.com/track/59m1MNGqo0ebDQ1T71JVm4'}, 5: {'music_source': 'https://music.youtube.com/watch?v=K8oVsiuDlLA', 'metadata_source': 'https://open.spotify.com/track/3Jscz9ODgRCDQKyFtJPIyW'}, 6: {'music_source': 'https://music.youtube.com/watch?v=nxeUtKHTWYU', 'metadata_source': 'https://open.spotify.com/track/7KceQsUwMh1zyW94c3JCMC'}, 7: {'music_source': 'https://music.youtube.com/watch?v=nmbiBVPe5bY', 'metadata_source': 'https://open.spotify.com/track/22fSzde77hjB052Vo155LF'}, 8: {'music_source': 'https://music.youtube.com/watch?v=d67H9wtS7rs', 'metadata_source': 'https://open.spotify.com/track/5vL4zyP6X132arv4VhySLT'}, 9: {'music_source': 'https://music.youtube.com/watch?v=KrSQJeTBIpI', 'metadata_source': 'https://open.spotify.com/track/1ctHNAVFmDTtge6GpmuBlg'}, 10: {'music_source': 'https://music.youtube.com/watch?v=JA8NlW1ns9c', 'metadata_source': 'https://open.spotify.com/track/13NAPa9UGsNvpWlCeIBB9K'}, 11: {'music_source': 'https://music.youtube.com/watch?v=uIe9kiD02BI', 'metadata_source': 'https://open.spotify.com/track/5VeH6BTYuILdKR7SzSuwkx'}, 12: {'music_source': 'https://music.youtube.com/watch?v=o1FcoMhwFQE', 'metadata_source': 'https://open.spotify.com/track/6Ysrcp03rQVYuSeFO6bC0W'}, 13: {'music_source': 'https://music.youtube.com/watch?v=aRsuhkWA3Dw', 'metadata_source': 'https://open.spotify.com/track/451U7NEyfqtVefeIgSoJF0'}, 14: {'music_source': 'https://music.youtube.com/watch?v=ISocMAtkK1g', 'metadata_source': 'https://open.spotify.com/track/17mOPJIiRx5J5jtvOzvpet'}, 15: {'music_source': 'https://music.youtube.com/watch?v=wkXE4-VpSec', 'metadata_source': 'https://open.spotify.com/track/347F32RMBGXtUyntcqX1oS'}, 16: {'music_source': 'https://music.youtube.com/watch?v=NFAi_mxlcXs', 'metadata_source': 'https://open.spotify.com/track/78qBcW44wNzdr2EDpqi0oV'}, 17: {'music_source': 'https://music.youtube.com/watch?v=KeVK8bQzhPc', 'metadata_source': 'https://open.spotify.com/track/0HtVZMMehKHJPG4npCnXIv'}, 18: {'music_source': 'https://music.youtube.com/watch?v=i7PIYznqMRo', 'metadata_source': 'https://open.spotify.com/track/1gsgZeuYOcfl5NF0tZoLLf'}, 19: {'music_source': 'https://music.youtube.com/watch?v=P8addf3qCUU', 'metadata_source': 'https://open.spotify.com/track/6RGQkDid8tL9tRi18cI73Z'}, 20: {'music_source': 'https://music.youtube.com/watch?v=xBzDOqeaDOw', 'metadata_source': 'https://open.spotify.com/track/4ozZizc3fPNkTBBm3kcVt5'}, 21: {'music_source': 'https://music.youtube.com/watch?v=qXLJF5CThrU', 'metadata_source': 'https://open.spotify.com/track/3Z6pxEAUAOmlrATYFIo2mw'}, 22: {'music_source': 'https://music.youtube.com/watch?v=L2XvJw5kbt8', 'metadata_source': 'https://open.spotify.com/track/02OiUyGhIgBHQwwZO4fV6x'}}
+
+# Add a flag to track if the queue is still being processed
+is_downloading = False
+
+def process_next_song():
+    global is_downloading
+
+    if song_queue:
+        # Convert the dictionary to a list and pop the first item
+        song_key, song = next(iter(song_queue.items()))  # Get the first item in the dictionary
+
+        # Remove the first item from the queue
+        del song_queue[song_key]
+        
+        flac_source = song['music_source']
+        metadata_source = song['metadata_source']
+
+        # Create the worker for downloading the song
+        download_worker = DownloadWorker(get_music, flac_source, metadata_source)
+        
+        # Connect the finished signal to the next step (process next song)
+        download_worker.finished.connect(lambda message: handle_download_finished(message, download_worker))
+        
+        # Start the worker thread
+        download_worker.start()
+    else:
+        print("All downloads completed.")
+        is_downloading = False
+
+def handle_download_finished(message, worker):
+    # Print the message when the download finishes (success or error)
+    print(message)
+    
+    # Optionally, clean up the worker
+    if worker:
+        worker.quit()  # Stop the worker if it's finished
+        worker.wait()  # Wait for the worker to finish cleanly
+
+    # Process the next song in the queue
+    process_next_song()
 
 def download_audio(flac_source):
     # Load the metadata from the .spotdl file
