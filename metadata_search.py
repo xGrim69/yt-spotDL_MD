@@ -1,9 +1,11 @@
+import time
 import spotipy
 import requests
 from spotipy.oauth2 import SpotifyClientCredentials
 from PyQt6.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QListWidget, QListWidgetItem, QLabel
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap, QIcon
+from requests.exceptions import ReadTimeout
 
 # Spotify authentication
 client_id = '3cba3e9f179a4dd699883e7ac2888d6d'
@@ -94,6 +96,26 @@ def on_metadata_item_clicked(item, callback):
     # Close the metadata screen
     metadata_screen.close()
 
+# Function to handle Spotify search with retry logic
+def fetch_results_with_retry(song_query, max_retries=3):
+    retries = 0
+    while retries < max_retries:
+        try:
+            # Try to fetch results from Spotify API
+            results = sp.search(q=song_query, type='track', limit=10)  # Limit results to 10 tracks
+            return results
+        except ReadTimeout as e:
+            # If a timeout occurs, retry the request
+            retries += 1
+            print(f"Timeout error, retrying... {retries}/{max_retries}")
+            time.sleep(2)  # Wait for 2 seconds before retrying
+        except Exception as e:
+            # Log other exceptions and stop retrying
+            print(f"Error occurred: {e}")
+            break
+    print("Max retries reached, returning empty results.")
+    return None  # Return None if max retries are reached without success
+
 def fetch_results():
     song_query = metadata_search_bar.text()
 
@@ -102,9 +124,11 @@ def fetch_results():
         metadata_results_list.clear()
         return
 
-    results = sp.search(q=song_query, type='track', limit=10)  # Limit results to 10 tracks
-    tracks = results['tracks']['items'] # Fetching the results based on the song query
-    metadata_results_list.clear()  # Clear previous results
+    # Call the retry-enabled search function
+    results = fetch_results_with_retry(song_query)
+    if results:
+        tracks = results['tracks']['items']  # Fetching the results based on the song query
+        metadata_results_list.clear()  # Clear previous results
 
     # Adding the fetched items to the metadata results list
     for track in tracks:

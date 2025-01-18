@@ -5,14 +5,13 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFontMetrics
 from metadata_search import launch_metadata_search
 from music_search import launch_music_search
-from download_song import get_music
+import download_song
 
 app = QApplication([]) # Initializing the application
 
 # Initialization of global variables
 music_search_bar = None
 metadata_search_bar = None
-song_queue = {}
 
 def on_metadata_search_clicked(event):
     # Automatically inserts the link of the selected item in the metadata search scren
@@ -33,19 +32,23 @@ def on_music_search_clicked(event):
     event.accept()
 
 def on_download_button_clicked():
-    for song in song_queue.keys():
-        # Call the get_music function with the links
-        get_music(song_queue[song]['music_source'], song_queue[song]['metadata_source'])
-    
-    song_queue.clear()
+    # global is_downloading
+    if download_song.is_downloading:
+        print("Already downloading, please wait.")
+        return
+
+    download_song.is_downloading = True
+
+    # Start processing the songs in the queue
+    download_song.process_next_song()
 
 def on_add_button_clicked():
     if music_search_bar.text().strip() != "" and metadata_search_bar.text().strip() != "":
-        song_queue[len(song_queue) + 1] = {'music_source': music_search_bar.text(), 'metadata_source': metadata_search_bar.text()}
+        download_song.song_queue[len(download_song.song_queue) + 1] = {'music_source': music_search_bar.text(), 'metadata_source': metadata_search_bar.text()}
         music_search_bar.clear()
         metadata_search_bar.clear()
         os.system('clear')
-        print(song_queue)
+        print(download_song.song_queue)
 
 def create_main_screen():
     screen_geometry = app.primaryScreen().geometry()
