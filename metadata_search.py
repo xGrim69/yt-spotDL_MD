@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QHBoxLayout, QW
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap, QIcon
 from requests.exceptions import ReadTimeout
+from worker import MetadataSearchWorker
 
 # Spotify authentication
 client_id = '3cba3e9f179a4dd699883e7ac2888d6d'
@@ -19,8 +20,51 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 metadata_screen = None
 metadata_search_bar = None
 metadata_results_list = None
-timer = QTimer()
-timer.setSingleShot(True)
+search_timer = None
+
+def on_metadata_search_text_changed(event):
+    global search_timer
+
+    song_query = metadata_search_bar.text().strip()  # Get the search query from the search bar
+
+    # Stop the previous timer if it's running
+    if search_timer is not None:
+        search_timer.stop()
+
+    # Clears the content of metadata results list
+    if not song_query:
+        metadata_results_list.clear()
+        return
+    
+    if song_query:  # Only trigger search if the input is not empty
+        # Create the timer to wait for 1.5 seconds before executing the search function
+        search_timer = QTimer()
+        search_timer.setSingleShot(True)  # Ensures it triggers only once after the delay
+        search_timer.timeout.connect(lambda: start_metadata_search(song_query))
+        search_timer.start(1500)  # Wait for 1.5 seconds before calling the search function
+
+def start_metadata_search(song_query):
+    # Create the MetadataSearchWorker with the search function and song query
+    search_worker = MetadataSearchWorker(fetch_results_with_retry, song_query)
+    
+    # Connect the finished signal to handle the results and pass the album_id = track['album']['id']  # Get the album IDworker instance
+    search_worker.finished.connect(lambda results: handle_metadata_search_finished(results, search_worker))
+    
+    # Start the worker thread
+    search_worker.start()
+
+def handle_metadata_search_finished(results, worker):
+    if isinstance(results, str):  # If there's an error message
+        print(f"Metadata search failed: {results}")
+    else:
+        # Handle the search results (e.g., display them in the UI)
+        metadata_results_list.clear()
+        fetch_results()
+    
+    # Optionally, clean up the worker
+    if worker:
+        worker.quit()  # Stop the worker if it's finished
+        worker.wait()  # Wait for the worker to finish cleanly
 
 # Function to launch metadata search window
 def launch_metadata_search(qApplication, callback):
@@ -46,7 +90,6 @@ def launch_metadata_search(qApplication, callback):
         global metadata_search_bar # Making the metadata search bar global for content modifications in the metadata results list
         metadata_search_bar = QLineEdit()
 
-        timer.timeout.connect(fetch_results)
         metadata_search_bar.textChanged.connect(on_metadata_search_text_changed)
 
         metadata_search_label = QLabel("Song Title: ")
@@ -80,8 +123,8 @@ def launch_metadata_search(qApplication, callback):
     # Show the window
     metadata_screen.show()
 
-def on_metadata_search_text_changed(event):
-    timer.start(1500)
+# def on_metadata_search_text_changed(event):
+#     timer.start(1500)
 
 def on_metadata_item_clicked(item, callback):
     track_link = item.data(Qt.ItemDataRole.UserRole) # Get Spotify link
@@ -102,8 +145,8 @@ def fetch_results_with_retry(song_query, max_retries=3):
     while retries < max_retries:
         try:
             # Try to fetch results from Spotify API
-            results = sp.search(q=song_query, type='track', limit=10)  # Limit results to 10 tracks
-            return results
+            metadata_results = sp.search(q=song_query, type='track', limit=10)  # Limit results to 10 tracks
+            return metadata_results
         except ReadTimeout as e:
             # If a timeout occurs, retry the request
             retries += 1
@@ -125,9 +168,10 @@ def fetch_results():
         return
 
     # Call the retry-enabled search function
-    results = fetch_results_with_retry(song_query)
-    if results:
-        tracks = results['tracks']['items']  # Fetching the results based on the song query
+    metadata_results = fetch_results_with_retry(song_query)
+
+    if metadata_results:
+        tracks = metadata_results['tracks']['items']  # Fetching the results based on the song query
         metadata_results_list.clear()  # Clear previous results
 
     # Adding the fetched items to the metadata results list

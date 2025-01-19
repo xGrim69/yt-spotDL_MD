@@ -1,8 +1,11 @@
 from ytmusicapi import YTMusic
+import time
 import requests
 from PyQt6.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QListWidget, QListWidgetItem, QLabel
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap, QIcon
+from requests.exceptions import ReadTimeout
+from worker import MusicSearchWorker
 
 # Initialize YTMusic API
 ytmusic = YTMusic()
@@ -11,8 +14,51 @@ ytmusic = YTMusic()
 music_screen = None
 music_search_bar = None
 music_results_list = None
-timer = QTimer()
-timer.setSingleShot(True)
+search_timer = None
+
+def on_music_search_text_changed(event):
+    global search_timer
+
+    song_query = music_search_bar.text().strip()  # Get the search query from the search bar
+
+    # Stop the previous timer if it's running
+    if search_timer is not None:
+        search_timer.stop()
+
+    # Clears the content of metadata results list
+    if not song_query:
+        music_results_list.clear()
+        return
+    
+    if song_query:  # Only trigger search if the input is not empty
+        # Create the timer to wait for 1.5 seconds before executing the search function
+        search_timer = QTimer()
+        search_timer.setSingleShot(True)  # Ensures it triggers only once after the delay
+        search_timer.timeout.connect(lambda: start_music_search(song_query))
+        search_timer.start(1500)  # Wait for 1.5 seconds before calling the search function
+
+def start_music_search(song_query):
+    # Create the MusicSearchWorker with the search function and song query
+    search_worker = MusicSearchWorker(fetch_results_with_retry, song_query)
+    
+    # Connect the finished signal to handle the results and pass the album_id = track['album']['id']  # Get the album IDworker instance
+    search_worker.finished.connect(lambda results: handle_music_search_finished(results, search_worker))
+    
+    # Start the worker thread
+    search_worker.start()
+
+def handle_music_search_finished(results, worker):
+    if isinstance(results, str):  # If there's an error message
+        print(f"Metadata search failed: {results}")
+    else:
+        # Handle the search results (e.g., display them in the UI)
+        music_results_list.clear()
+        fetch_results()
+    
+    # Optionally, clean up the worker
+    if worker:
+        worker.quit()  # Stop the worker if it's finished
+        worker.wait()  # Wait for the worker to finish cleanly
 
 # Function to launch music search window
 def launch_music_search(qApplication, callback):
@@ -38,7 +84,6 @@ def launch_music_search(qApplication, callback):
         global music_search_bar # Making the music search bar global for content modifications in the metadata results list
         music_search_bar = QLineEdit()
 
-        timer.timeout.connect(fetch_results)
         music_search_bar.textChanged.connect(on_music_search_text_changed)
 
         music_search_label = QLabel("Song Title: ")
@@ -72,9 +117,6 @@ def launch_music_search(qApplication, callback):
     # Show the window
     music_screen.show()
 
-def on_music_search_text_changed(event):
-    timer.start(1500)
-
 def on_music_item_clicked(item, callback):
     song_url = item.data(Qt.ItemDataRole.UserRole) # Get Youtube Music link
 
@@ -88,21 +130,49 @@ def on_music_item_clicked(item, callback):
     # Close the music screen
     music_screen.close()
 
+# Function to handle Spotify search with retry logic
+def fetch_results_with_retry(song_query, max_retries=3):
+    retries = 0
+    while retries < max_retries:
+        try:
+            # Try to fetch results from Spotify API
+            music_results = ytmusic.search(song_query, filter='songs')
+            return music_results
+        except ReadTimeout as e:
+            # If a timeout occurs, retry the request
+            retries += 1
+            print(f"Timeout error, retrying... {retries}/{max_retries}")
+            time.sleep(2)  # Wait for 2 seconds before retrying
+        except Exception as e:
+            # Log other exceptions and stop retrying
+            print(f"Error occurred: {e}")
+            break
+    print("Max retries reached, returning empty results.")
+    return None  # Return None if max retries are reached without success
+
 def fetch_results():
     song_query = music_search_bar.text()
 
     if not song_query:
         music_results_list.clear()
         return
+    
+    # Call the retry-enabled search function
+    music_results = fetch_results_with_retry(song_query)
 
-    # Search for songs on YouTube Music using YTMusic API
-    search_results = ytmusic.search(song_query, filter='songs')
-    music_results_list.clear()  # Clear previous results
-
+    if music_results:
+        music_results_list.clear()  # Clear previous results
+    
     # Adding the fetched items to the music results list
-    for track in search_results[:10]:  # Slice the first 10 results
+    for track in music_results[:10]:  # Slice the first 10 results
         song_title = track['title']
-        artist_name = track['artists'][0]['name'] if 'artists' in track else 'Unknown Artist'
+
+        # Check if the 'artists' list is empty before accessing it
+        if 'artists' in track and track['artists']:
+            artist_name = ', '.join(artist['name'] for artist in track['artists'])
+        else:
+            artist_name = 'Unknown Artist'  # Default value if no artists found
+        
         video_id = track['videoId']
         
         # Create a YouTube Music link
