@@ -1,17 +1,19 @@
 import sys
 import os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QGroupBox, QLabel, QLineEdit, QPushButton, QListWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFontMetrics
 from metadata_search import launch_metadata_search
 from music_search import launch_music_search
 import download_song
+import metadata_search
 
 app = QApplication([]) # Initializing the application
 
 # Initialization of global variables
 music_search_bar = None
 metadata_search_bar = None
+queue_section_area = None
 
 def on_metadata_search_clicked(event):
     # Automatically inserts the link of the selected item in the metadata search scren
@@ -47,8 +49,11 @@ def on_add_button_clicked():
         download_song.song_queue[len(download_song.song_queue) + 1] = {'music_source': music_search_bar.text(), 'metadata_source': metadata_search_bar.text()}
         music_search_bar.clear()
         metadata_search_bar.clear()
-        os.system('clear')
-        print(download_song.song_queue)
+
+        metadata_search.temp_queued_song.setSizeHint(QSize(70, 70))
+        metadata_search.queued_songs[len(metadata_search.queued_songs) + 1] = metadata_search.temp_queued_song
+
+        queue_section_area.addItem(metadata_search.queued_songs[len(metadata_search.queued_songs)])
 
 def create_main_screen():
     screen_geometry = app.primaryScreen().geometry()
@@ -167,11 +172,11 @@ def insert_recent_downloads():
 def insert_queue_section():
     queue_group_box = QGroupBox("Queue Section") # Initializing the group box for queue section
 
+    global queue_section_area
     queue_section_area = QListWidget() # Initializing the container for queue section
-    # queue_section_area.setWidgetResizable(False)
-
-    # initialize_queue = QWidget()
-    # queue_section_area.setWidget(initialize_queue)
+    queue_section_area.setSpacing(5)
+    queue_section_area.setUniformItemSizes(True)
+    queue_section_area.setIconSize(QSize(60, 60))
 
     queue_section_layout = QVBoxLayout()
     queue_section_layout.addWidget(queue_section_area)
