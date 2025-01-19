@@ -21,6 +21,8 @@ metadata_screen = None
 metadata_search_bar = None
 metadata_results_list = None
 search_timer = None
+queued_songs = {}
+temp_queued_song = None
 
 def on_metadata_search_text_changed(event):
     global search_timer
@@ -131,6 +133,9 @@ def on_metadata_item_clicked(item, callback):
     
     # Pass the track link back to the callback function in main_screen.py
     callback(track_link)
+
+    global temp_queued_song
+    temp_queued_song = item.clone() # Saving info of a queued song, including album art and track link
 
     metadata_search_bar.clear()
     metadata_search_bar.setFocus()
