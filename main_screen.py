@@ -14,6 +14,7 @@ app = QApplication([]) # Initializing the application
 music_search_bar = None
 metadata_search_bar = None
 queue_section_area = None
+recent_downloads_area = None
 
 def on_metadata_search_clicked(event):
     # Automatically inserts the link of the selected item in the metadata search scren
@@ -35,11 +36,15 @@ def on_music_search_clicked(event):
 
 def on_download_button_clicked():
     # global is_downloading
+    
     if download_song.is_downloading:
         print("Already downloading, please wait.")
         return
 
     download_song.is_downloading = True
+
+    download_song.queue_container = queue_section_area
+    download_song.recent_container = recent_downloads_area
 
     # Start processing the songs in the queue
     download_song.process_next_song()
@@ -153,11 +158,11 @@ def insert_input_section():
 def insert_recent_downloads():
     recents_group_box = QGroupBox("Recent Downloads") # Initializing the group box for recent downloads
 
+    global recent_downloads_area
     recent_downloads_area = QListWidget() # Initializing the container for recent downloads
-    # recent_downloads_area.setWidgetResizable(False)
-
-    # initialize_recents = QWidget()
-    # recent_downloads_area.setWidget(initialize_recents)
+    recent_downloads_area.setSpacing(5)
+    recent_downloads_area.setUniformItemSizes(True)
+    recent_downloads_area.setIconSize(QSize(60, 60))
 
     recent_downloads_layout = QVBoxLayout()
     recent_downloads_layout.addWidget(recent_downloads_area)
