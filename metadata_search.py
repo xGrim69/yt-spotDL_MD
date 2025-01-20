@@ -109,6 +109,7 @@ def launch_metadata_search(qApplication, callback):
         # Connect the item click event to fetch the selected track link
         metadata_results_list.itemClicked.connect(lambda item: on_metadata_item_clicked(item, callback))
 
+        metadata_results_list.setSpacing(5)
         metadata_results_list.setUniformItemSizes(True)
         metadata_results_list.setIconSize(QSize(60, 60))
 
@@ -124,9 +125,6 @@ def launch_metadata_search(qApplication, callback):
     
     # Show the window
     metadata_screen.show()
-
-# def on_metadata_search_text_changed(event):
-#     timer.start(1500)
 
 def on_metadata_item_clicked(item, callback):
     track_link = item.data(Qt.ItemDataRole.UserRole) # Get Spotify link
@@ -201,7 +199,7 @@ def fetch_results():
                 item.setIcon(QIcon(pixmap))
         
         item.setData(Qt.ItemDataRole.UserRole, track_url) # Store the url as additional data to the item for fast url retrieval
-        item.setSizeHint(QSize(110, 110))  # Set a larger size hint for each item (width x height)
+        # item.setSizeHint(QSize(110, 110))  # Set a larger size hint for each item (width x height)
         metadata_results_list.addItem(item)
 
 def fetch_album_image(url):

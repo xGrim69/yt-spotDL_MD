@@ -101,8 +101,9 @@ def launch_music_search(qApplication, callback):
         # Connect the item click event to fetch the selected track link
         music_results_list.itemClicked.connect(lambda item: on_music_item_clicked(item, callback))
 
+        music_results_list.setSpacing(5)
         music_results_list.setUniformItemSizes(True)
-        music_results_list.setIconSize(QSize(100, 100))
+        music_results_list.setIconSize(QSize(60, 60))
 
         music_screen_layout = QVBoxLayout()
         music_screen_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -191,7 +192,6 @@ def fetch_results():
                 item.setIcon(QIcon(pixmap))
         
         item.setData(Qt.ItemDataRole.UserRole, track_link) # Store the url as additional data to the item for fast url retrieval
-        item.setSizeHint(QSize(110, 110))  # Set a larger size for each item
         music_results_list.addItem(item)
 
 def fetch_album_image(url):

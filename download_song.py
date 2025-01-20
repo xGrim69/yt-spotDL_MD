@@ -17,9 +17,8 @@ credentials = SpotifyClientCredentials(client_id=client_id, client_secret=client
 sp = spotipy.Spotify(client_credentials_manager=credentials)
 
 song_queue = {}
-
-# # For debugging purposes
-# song_queue = {1: {'music_source': 'https://music.youtube.com/watch?v=DoPErQwgfg8', 'metadata_source': 'https://open.spotify.com/track/5zQUndaoBtXJ10SsApqtvw'}, 2: {'music_source': 'https://music.youtube.com/watch?v=mDQqhGH58P0', 'metadata_source': 'https://open.spotify.com/track/2f92hG26Af9enOtKh5dqnx'}, 3: {'music_source': 'https://music.youtube.com/watch?v=Z-hpRjpFmmU', 'metadata_source': 'https://open.spotify.com/track/59rbPbgauxNuF8JjQgCZDR'}, 4: {'music_source': 'https://music.youtube.com/watch?v=lcOz_NEUO0E', 'metadata_source': 'https://open.spotify.com/track/59m1MNGqo0ebDQ1T71JVm4'}, 5: {'music_source': 'https://music.youtube.com/watch?v=K8oVsiuDlLA', 'metadata_source': 'https://open.spotify.com/track/3Jscz9ODgRCDQKyFtJPIyW'}, 6: {'music_source': 'https://music.youtube.com/watch?v=nxeUtKHTWYU', 'metadata_source': 'https://open.spotify.com/track/7KceQsUwMh1zyW94c3JCMC'}, 7: {'music_source': 'https://music.youtube.com/watch?v=nmbiBVPe5bY', 'metadata_source': 'https://open.spotify.com/track/22fSzde77hjB052Vo155LF'}, 8: {'music_source': 'https://music.youtube.com/watch?v=d67H9wtS7rs', 'metadata_source': 'https://open.spotify.com/track/5vL4zyP6X132arv4VhySLT'}, 9: {'music_source': 'https://music.youtube.com/watch?v=KrSQJeTBIpI', 'metadata_source': 'https://open.spotify.com/track/1ctHNAVFmDTtge6GpmuBlg'}, 10: {'music_source': 'https://music.youtube.com/watch?v=JA8NlW1ns9c', 'metadata_source': 'https://open.spotify.com/track/13NAPa9UGsNvpWlCeIBB9K'}, 11: {'music_source': 'https://music.youtube.com/watch?v=uIe9kiD02BI', 'metadata_source': 'https://open.spotify.com/track/5VeH6BTYuILdKR7SzSuwkx'}, 12: {'music_source': 'https://music.youtube.com/watch?v=o1FcoMhwFQE', 'metadata_source': 'https://open.spotify.com/track/6Ysrcp03rQVYuSeFO6bC0W'}, 13: {'music_source': 'https://music.youtube.com/watch?v=aRsuhkWA3Dw', 'metadata_source': 'https://open.spotify.com/track/451U7NEyfqtVefeIgSoJF0'}, 14: {'music_source': 'https://music.youtube.com/watch?v=ISocMAtkK1g', 'metadata_source': 'https://open.spotify.com/track/17mOPJIiRx5J5jtvOzvpet'}, 15: {'music_source': 'https://music.youtube.com/watch?v=wkXE4-VpSec', 'metadata_source': 'https://open.spotify.com/track/347F32RMBGXtUyntcqX1oS'}, 16: {'music_source': 'https://music.youtube.com/watch?v=NFAi_mxlcXs', 'metadata_source': 'https://open.spotify.com/track/78qBcW44wNzdr2EDpqi0oV'}, 17: {'music_source': 'https://music.youtube.com/watch?v=KeVK8bQzhPc', 'metadata_source': 'https://open.spotify.com/track/0HtVZMMehKHJPG4npCnXIv'}, 18: {'music_source': 'https://music.youtube.com/watch?v=i7PIYznqMRo', 'metadata_source': 'https://open.spotify.com/track/1gsgZeuYOcfl5NF0tZoLLf'}, 19: {'music_source': 'https://music.youtube.com/watch?v=P8addf3qCUU', 'metadata_source': 'https://open.spotify.com/track/6RGQkDid8tL9tRi18cI73Z'}, 20: {'music_source': 'https://music.youtube.com/watch?v=xBzDOqeaDOw', 'metadata_source': 'https://open.spotify.com/track/4ozZizc3fPNkTBBm3kcVt5'}, 21: {'music_source': 'https://music.youtube.com/watch?v=qXLJF5CThrU', 'metadata_source': 'https://open.spotify.com/track/3Z6pxEAUAOmlrATYFIo2mw'}, 22: {'music_source': 'https://music.youtube.com/watch?v=L2XvJw5kbt8', 'metadata_source': 'https://open.spotify.com/track/02OiUyGhIgBHQwwZO4fV6x'}}
+queue_container = None
+recent_container = None
 
 # Add a flag to track if the queue is still being processed
 is_downloading = False
@@ -182,6 +181,12 @@ def get_music(flac_source_link, metadata_source_link):
     flac_file = f'./Music/{album_artist}/{album}/{title}.flac'  # Predefined location of the flac file
 
     embed_tag(flac_file) # Do the embedding process itself
+
+    queue_item = queue_container.takeItem(0) # Get the recently downloaded item from the queue container referenced to queue_section_area of main screen
+    recent_item = queue_item.clone() # Clone the item to be inserted in recent container referenced to recent_downloads_area
+    recent_container.insertItem(0, recent_item) # Insert the cloned item to the first place
+
+    del queue_item # Delete the item downloaded to the queue item
 
     # Cleaning the directory
     try:
