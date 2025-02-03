@@ -193,3 +193,6 @@ def get_music(flac_source_link, metadata_source_link):
         shutil.rmtree('./temp_resources')
     except OSError as e:
         print(f'Error: {e.error}')
+
+# # Use this function if the music is not available in spotify and comment out line 185 to 189 before running the python file.
+# get_music([youtube music url without query line (?si=)], [spotify url without query line (?si=)])
