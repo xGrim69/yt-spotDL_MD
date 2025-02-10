@@ -122,8 +122,8 @@ def extract_metadata(flac_source_link, metadata_source_link):
         genre = item.get("genres")[0] if item.get("genres") else "" # Get the first genre if genre list is not empty, else, blank
         
         # Split by spaces and slashes, and capitalize
-        parts = re.split(r'([ /-])', genre)  # Split by space, slash, or hyphen but keep the delimiters
-        capitalized_genre = ''.join([part.capitalize() if part not in [' ', '-', '/'] else part for part in parts])
+        parts = re.split(r'([ &/-])', genre)  # Split by space, slash, or hyphen but keep the delimiters
+        capitalized_genre = ''.join([part.capitalize() if part not in [' ', '-', '/', '&'] else part for part in parts])
 
         # Extract fields with defaults for optional ones (blank if not available)
         extracted_data = {
