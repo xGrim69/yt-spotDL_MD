@@ -83,7 +83,7 @@ def download_audio(flac_source):
         "yt-dlp",
         "-x",  # Extract audio
         "--audio-format", "flac",  # Specify audio format as FLAC
-        "-o", f"./Music/{sanitized_album_artist}/{sanitized_album}/{sanitized_title}.%(ext)s",  # Output template
+        "-o", f"./Music/{sanitized_album_artist}/{sanitized_album}/{sanitized_title}.flac",  # Output template
         flac_source  # The URL to download from
     ]
 
