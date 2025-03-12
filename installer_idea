@@ -1,0 +1,7 @@
+POSSIBLE IDEA FOR MAKING AN INSTALLER WITH EXECUTABLE:
+
+> use same logic in app.sh for manipulating terminal commands (copy/move files, creating/activating virtual environments, creating symbolic link)
+> gui that will get installation location
+> installer file contains the downloader project folder, script that will operate installer, installer gui program
+> compiled in zip file
+> refer to "EXECUTABLE MUSIC DOWNLOADER" thread in ChatGPT for reference
